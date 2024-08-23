@@ -1,0 +1,6 @@
+// Método de prueba
+export const testpublicacion = (req, res) => {
+    return res.status(200).send({
+      message: "Mensaje enviado desde el controlador publicacion.js"
+    });
+  }

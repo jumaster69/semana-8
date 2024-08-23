@@ -1,9 +1,9 @@
 import { Router } from "express";
 const router = Router();
-import { testUser } from "../controllers/user.js";
+import { testPublication } from "../controllers/publication.js";
 
 // Definir las rutas
-router.get('/test-user', testUser);
+router.get('/test-publication', testPublication);
 
 // Exportar el Router
 export default router;
