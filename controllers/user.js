@@ -1,4 +1,6 @@
 import User from "../models/users.js";
+import Follow from "../models/follows.js";
+import Publication from "../models/publications.js";
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 import fs from "fs";
@@ -380,7 +382,7 @@ export const avatar = async (req, res) => {
     const file = req.params.file;
 
     // Configurando el path real de la imagen que queremos mostrar
-    const filePath = "./uploads/avatars/" + file;
+    const filePath = `./uploads/avatars/${file}`;
 
     // Comprobar que si existe el filePath
     fs.stat(filePath, (error, exists) => {
@@ -400,6 +402,57 @@ export const avatar = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "Error al mostrar la imagen"
+    });
+  }
+}
+
+// Método para mostrar contador de seguidores y publicaciones
+export const counters = async (req, res) => {
+  try {
+    // Obtener el Id del usuario autenticado (token)
+    let userId = req.user.userId;
+
+    // Si llega el id a través de los parámetros en la URL tiene prioridad
+    if(req.params.id){
+      userId = req.params.id;
+    }
+
+    // Obtener el nombre y apellido del usuario
+    const user = await User.findById(userId, { name: 1, last_name: 1});
+
+    // Vericar el user
+    if(!user){
+      return res.status(404).send({
+        status: "error",
+        message: "Usuario no encontrado"
+      });
+    }
+
+    // Contador de usuarios que yo sigo (o que sigue el usuario autenticado)
+    const followingCount = await Follow.countDocuments({ "following_user": userId });
+
+    // Contador de usuarios que me siguen a mi (que siguen al usuario autenticado)
+    const followedCount = await Follow.countDocuments({ "followed_user": userId });
+
+    // Contador de publicaciones del usuario autenticado
+    const publicationsCount = await Publication.countDocuments({ "user_id": userId });
+
+    // Devolver los contadores
+    return res.status(200).json({
+      status: "success",
+      userId,
+      name: user.name,
+      last_name: user.last_name,
+      followingCount: followingCount,
+      followedCount: followedCount,
+      publicationsCount: publicationsCount
+    });
+
+  } catch (error) {
+    console.log("Error en los contadores", error)
+    return res.status(500).send({
+      status: "error",
+      message: "Error en los contadores"
     });
   }
 }
